@@ -22,21 +22,24 @@ A full-stack, autonomous sales pipeline built to satisfy the **MCP-Powered Lead 
 
 ---
 
-### 🏗️ System Architecture
+## 🏗️ System Architecture
 
 The system follows the required **Micro-Tool Architecture** where n8n acts as the "Brain" (Agent) and Python acts as the "Hands" (Tools).
 
 ```mermaid
 graph TD
-    User[User / Dashboard] -->|Trigger| n8n[n8n Orchestrator (Agent)]
-    n8n -->|HTTP Request| API[MCP Server (FastAPI)]
+    User["User / Dashboard"] -->|Trigger| n8n["n8n Orchestrator (Agent)"]
+    n8n -->|HTTP Request| API["MCP Server (FastAPI)"]
     
     subgraph "MCP Tools (Python)"
     API -->|Tool| Gen[Lead Generator]
-    API -->|Tool| Enrich[Lead Enricher (Groq/Rules)]
+    API -->|Tool| Enrich["Lead Enricher (Groq/Rules)"]
     API -->|Tool| Draft[Message Drafter]
     API -->|Tool| Send[Outreach Sender]
     end
     
-    Gen & Enrich & Draft & Send --> DB[(SQLite Database)]
-    DB --> Dashboard[Streamlit Frontend]
+    Gen --> DB[("SQLite Database")]
+    Enrich --> DB
+    Draft --> DB
+    Send --> DB
+    DB --> User
