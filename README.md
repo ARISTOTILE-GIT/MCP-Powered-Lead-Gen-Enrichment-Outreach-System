@@ -72,3 +72,16 @@ MCP-Powered Lead Gen+Enrichment+Outreach System/
 ```
 ---
 
+## 🧰 3.Tech Stack & Free Resources
+
+Per assignment constraints, **zero paid tools** were used.
+
+| Component      | Tool Used        | Why this choice? |
+|---------------|------------------|------------------|
+| Language      | Python 3.10+     | Standard for AI/Data Engineering. |
+| Backend       | FastAPI          | High-performance, easy-to-create REST APIs. |
+| Frontend      | Streamlit        | Rapid development of data monitoring dashboards. |
+| Database      | SQLite           | Lightweight, serverless, and file-based (Zero config). |
+| AI / LLM      | Groq             | **Free Tier**. Ultra-fast inference speed for Llama-3 models. |
+| Orchestration | n8n (Docker)     | Visual workflow automation (Self-hosted / Free). |
+| Testing       | Faker & Mock SMTP| To generate data and test emails safely locally. |
