@@ -2,13 +2,11 @@ import json
 import random
 import time
 import os
-import database # Namma DB file
+import database
 from dotenv import load_dotenv
 
-# Load Environment Variables (For AI Mode)
 load_dotenv()
 
-# Setup Groq (Optional - Only if AI mode is used)
 try:
     from groq import Groq
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -19,11 +17,9 @@ except ImportError:
 def enrich_data(mode="offline"):
     print(f"Starting Enrichment (Mode: {mode})...")
     
-    # 1. Connect to DB
     conn = database.get_db_connection()
     cursor = conn.cursor()
     
-    # 2. Fetch only 'NEW' leads
     cursor.execute("SELECT * FROM leads WHERE status='NEW'")
     rows = cursor.fetchall()
     
@@ -35,14 +31,12 @@ def enrich_data(mode="offline"):
     print(f"Processing {len(rows)} leads...")
     
     for row in rows:
-        # Convert DB Row to Dict
         lead = dict(row)
         lead_id = lead['id']
         industry = lead['industry']
         role = lead['role']
         company = lead['company_name']
         
-        # --- ENRICHMENT LOGIC ---
         
         pain_points = []
         triggers = []
@@ -50,7 +44,6 @@ def enrich_data(mode="offline"):
         company_size = random.choice(["Mid-Market", "Enterprise", "Startup"])
         confidence = random.randint(75, 98)
         
-        # A. AI MODE (Groq)
         if mode == "ai" and client:
             try:
                 prompt = f"""
@@ -68,14 +61,13 @@ def enrich_data(mode="offline"):
                 pain_points = data.get("pain_points", [])
                 triggers = data.get("buying_triggers", [])
                 print(f"AI Enriched: {lead['full_name']}")
-                time.sleep(1) # Rate Limit Safety
+                time.sleep(1) 
                 
             except Exception as e:
                 print(f"AI Failed ({e}), falling back to Offline.")
-                mode = "offline" # Fallback immediately for this lead
+                mode = "offline"
 
-        # B. OFFLINE MODE (Fallback / Default)
-        if not pain_points: # If AI failed or mode is offline
+        if not pain_points:
             if industry == "Technology":
                 pain_points = ["Technical debt slowing down release cycles", "High cloud infrastructure costs"]
                 triggers = ["Recent CTO hire", "Expanding engineering team"]
@@ -92,8 +84,6 @@ def enrich_data(mode="offline"):
             print(f"Offline Enriched: {lead['full_name']}")
             time.sleep(0.1)
 
-        # 3. SAVE TO DB (UPDATE)
-        # Mukkiyam: Lists ah JSON String ah maathuraan (json.dumps)
         cursor.execute('''
             UPDATE leads 
             SET pain_points=?, 
@@ -112,11 +102,11 @@ def enrich_data(mode="offline"):
             lead_id
         ))
 
-    # 4. Commit Changes
     conn.commit()
     conn.close()
     print("Enrichment Complete. Status updated to 'ENRICHED'.")
 
 if __name__ == "__main__":
     # Test run
+
     enrich_data(mode="offline")
