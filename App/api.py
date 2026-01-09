@@ -2,10 +2,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 import os
-import traceback # Error kandupidikka
-import database  # Namma DB Logic
+import traceback 
+import database
 
-# Import Logic Scripts
 import generate_leads
 import enrich_leads
 import generate_messages
@@ -13,17 +12,15 @@ import send_messages
 
 app = FastAPI(title="Agentic Sales Bot API")
 
-# --- DATA MODELS ---
 class LeadParams(BaseModel):
     num_leads: int = 10
 
 class EnrichParams(BaseModel):
-    mode: str = "offline"  # 'offline' or 'ai'
+    mode: str = "offline" 
 
 class SendParams(BaseModel):
-    mode: str = "dry_run"  # 'dry_run' or 'live'
+    mode: str = "dry_run"
 
-# --- STARTUP EVENT ---
 @app.on_event("startup")
 def startup_event():
     """
@@ -31,17 +28,14 @@ def startup_event():
     """
     try:
         database.init_db()
-        print("✅ API Startup: Database Initialized.")
+        print("API Startup: Database Initialized.")
     except Exception as e:
-        print(f"❌ API Startup Error: {e}")
-
-# --- API ENDPOINTS ---
+        print(f"API Startup Error: {e}")
 
 @app.post("/generate-leads")
 def api_generate_leads(params: LeadParams):
     """Step 1: Generate Leads into SQLite"""
     try:
-        # Script returns the list of generated leads
         leads = generate_leads.generate_leads(params.num_leads)
         return {
             "status": "success", 
@@ -84,7 +78,7 @@ def api_send_messages(params: SendParams):
     """Step 4: Send Messages (DB -> SMTP -> Update DB)"""
     try:
         if params.mode == "live":
-            print("🚀 [API] Requesting LIVE mode sending...")
+            print("[API] Requesting LIVE mode sending...")
             
         send_messages.process_sending(mode=params.mode)
         
@@ -94,7 +88,7 @@ def api_send_messages(params: SendParams):
             "message": f"Messaging process finished in {params.mode} mode."
         }
     except Exception as e:
-        print("❌ CRITICAL ERROR IN SEND_MESSAGES:")
+        print("CRITICAL ERROR IN SEND_MESSAGES:")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -103,7 +97,6 @@ def api_send_messages(params: SendParams):
 def api_clear_logs():
     """Clears the log file without deleting it (Avoids Windows Error)"""
     try:
-        # Open in 'w' mode wipes the content, but keeps the file alive
         with open("outreach.log", "w"):
             pass 
         return {"status": "success", "message": "Logs cleared successfully."}
@@ -120,14 +113,11 @@ def api_status():
         conn = database.get_db_connection()
         cursor = conn.cursor()
         
-        # SQL Magic: Get count of each status group in one shot
         cursor.execute("SELECT status, COUNT(*) FROM leads GROUP BY status")
         rows = cursor.fetchall()
         
-        # Initialize with zeros
         stats = {"NEW": 0, "ENRICHED": 0, "MESSAGED": 0, "SENT": 0, "FAILED": 0, "SENT_DRY_RUN": 0}
         
-        # Update with actual DB counts
         for row in rows:
             status_name = row['status']
             count = row[1]
@@ -141,5 +131,6 @@ def api_status():
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    print("🚀 API Server starting on http://0.0.0.0:8000")
+    print("API Server starting on http://0.0.0.0:8000")
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
