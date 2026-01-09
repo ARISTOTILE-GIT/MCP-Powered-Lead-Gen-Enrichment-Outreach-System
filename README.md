@@ -1,4 +1,4 @@
-# 1. Introduction
+# 📌1.Introduction
 
 # 🤖 Agentic Sales Bot: MCP-Powered Lead Gen & Outreach System
 
@@ -46,7 +46,7 @@ graph TD
 ```
 ---
 
-## 📁 Project Structure
+# 📁 2.Project Structure
 
 **The project follows a **clean micro-service architecture**, separating backend services, agent tools, automation workflows, and configuration.**
 
